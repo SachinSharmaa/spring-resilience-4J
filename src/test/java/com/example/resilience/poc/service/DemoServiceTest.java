@@ -1,5 +1,7 @@
 package com.example.resilience.poc.service;
 
+import com.example.resilience.poc.constants.CoreConstants;
+import com.example.resilience.poc.constants.FallbackConstants;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +44,7 @@ public class DemoServiceTest {
     public void slowCallFallbackTestForReturnType() {
         int regularCount = 0, fallBackCount = 0;
         for (int i = 0; i < Math.min(slidingWindowSize,minimumNumberOfCalls) + 3; i++) {
-            if (demoService.returningProcess(slowCallDurationThreshold + 1000).equals("SUCCESS")) {
+            if (demoService.returningProcess(slowCallDurationThreshold + 1000).equals(CoreConstants.MESSAGE.getValue())) {
                 regularCount++;
             } else {
                 fallBackCount++;
@@ -74,7 +76,7 @@ public class DemoServiceTest {
         try {
             demoService.uncheckedExceptionProcess();
         } catch (Throwable throwable) {
-            assertEquals("Reverting to Generic Fallback", throwable.getMessage());
+            assertEquals(FallbackConstants.GENERIC_FALLBACK_MESSAGE.getValue(), throwable.getMessage());
         }
     }
 
@@ -87,7 +89,7 @@ public class DemoServiceTest {
             }
         }
         System.out.println("Circuit Open");
-        assertEquals("FAILED", demoService.returningProcess(0));
+        assertEquals(FallbackConstants.CUSTOM_FALLBACK_MESSAGE.getValue(), demoService.returningProcess(0));
         System.out.println("Waiting for thread to transition to half-open state");
         try {
             Thread.sleep(waitDurationInOpenState);
@@ -100,7 +102,7 @@ public class DemoServiceTest {
     @DirtiesContext
     public void circuitSwitchToHalfOpenTest() {
         circuitSwitchHelper();
-        assertEquals("SUCCESS", demoService.returningProcess(0));
+        assertEquals(CoreConstants.MESSAGE.getValue(), demoService.returningProcess(0));
     }
 
     @Test
@@ -126,7 +128,7 @@ public class DemoServiceTest {
         int regularCount = 0, fallBackCount = 0;
         circuitSwitchHelper();
         for (int i = 0; i < permittedNumberOfCallsInHalfOpenState + 1; i++) {
-            if (demoService.returningProcess(0).equals("SUCCESS")) {
+            if (demoService.returningProcess(0).equals(CoreConstants.MESSAGE.getValue())) {
                 regularCount++;
             } else {
                 fallBackCount++;
@@ -139,7 +141,7 @@ public class DemoServiceTest {
     @Test
     @DirtiesContext
     public void timeLimiterTest() {
-        assertEquals("FAILED", demoService.returningProcess(timeoutDuration * 1000 + 1000));
+        assertEquals(FallbackConstants.CUSTOM_FALLBACK_MESSAGE.getValue(), demoService.returningProcess(timeoutDuration * 1000 + 1000));
     }
 
 }

@@ -1,8 +1,10 @@
 package com.example.resilience.poc.config.fallback;
 
-public class CustomFallback extends GenericFallback {
+import com.example.resilience.poc.constants.FallbackConstants;
 
-    public static Object fallBack(Throwable throwable) {
-        return new RuntimeException("Reverting to Custom Fallback");
+public class CustomFallback extends GenericFallback{
+
+    public static String fallBack(Throwable throwable) {
+        return FallbackConstants.CUSTOM_FALLBACK_MESSAGE.getValue();
     }
 }
