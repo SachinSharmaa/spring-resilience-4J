@@ -2,13 +2,10 @@ package com.example.resilience.poc.service;
 
 public interface DemoService {
 
-    public int add(int a, int b);
+    public void voidProcess(long sleepTime);
 
-    public void voidMethod();
+    public void uncheckedExceptionProcess();
 
-    public void uncheckedExceptionGenerator();
+    public String returningProcess(long sleepTime);
 
-    public String success();
-
-    public String timeConsumingProcess();
 }

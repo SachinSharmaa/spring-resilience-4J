@@ -9,21 +9,10 @@ import org.springframework.stereotype.Service;
 public class DemoServiceImpl implements DemoService {
 
     @Override
-    @EnableCircuitBreaker
-    public int add(int a, int b) {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return a + b;
-    }
-
-    @Override
     @EnableCircuitBreaker(fallbackClass = CustomFallback.class)
-    public void voidMethod() {
+    public void voidProcess(long sleepTime) {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -31,27 +20,20 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     @EnableCircuitBreaker
-    public void uncheckedExceptionGenerator() {
+    public void uncheckedExceptionProcess() {
         int a = 0;
-        int b = 10/a;
+        int b = 10 / a;
     }
 
     @Override
     @EnableCircuitBreaker(fallbackClass = SuccessFallback.class)
-    public String success() {
-        return "SUCCESS";
-    }
-
-    @Override
-    @EnableCircuitBreaker(fallbackClass = SuccessFallback.class)
-    public String timeConsumingProcess() {
+    public String returningProcess(long sleepTime) {
         try {
-            Thread.sleep(15000);
+            Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return "SUCCESS";
     }
-
 
 }
