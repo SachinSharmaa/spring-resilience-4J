@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EnableCircuitBreaker {
-    String name() default "test";
+    String name() default "circuitBreaker";
 
     Class<? extends GenericFallback> fallbackClass() default GenericFallback.class;
 }

@@ -2,41 +2,31 @@ package com.example.resilience.poc.config;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.Optional;
 
-@Configuration
-public class Resilience4JConfig {
 
-    @Value("${resilience.failure.rate.threshold:50}")
-    private float failureRateThreshold;
+public abstract class Resilience4JConfig {
 
-    @Value("${resilience.slow.call.duration.threshold:4000}")
-    private long slowCallDurationThreshold;
+    protected float failureRateThreshold = 60;
 
-    @Value("${resilience.wait.duration.in.open.state:20000}")
-    private long waitDurationInOpenState;
+    protected long slowCallDurationThreshold = 4000;
 
-    @Value("${resilience.minimum.number.of.calls:2}")
-    private int minimumNumberOfCalls;
+    protected long waitDurationInOpenState = 20000;
 
-    @Value("${resilience.sliding.window.size:2}")
-    private int slidingWindowSize;
+    protected int minimumNumberOfCalls = 2;
 
-    @Value("${resilience.permitted.number.of.calls.in.half.open.state:2}")
-    private int permittedNumberOfCallsInHalfOpenState;
+    protected int slidingWindowSize = 2;
 
-    @Value("${resilience.time.out.duration:10}")
-    private long timeoutDuration;
+    protected int permittedNumberOfCallsInHalfOpenState = 2;
 
-    @Bean
-    public Customizer<Resilience4JCircuitBreakerFactory> globalCustomConfiguration() {
+    protected long timeoutDuration = 10;
+
+    protected Customizer<Resilience4JCircuitBreakerFactory> createCircuitBreaker(Optional<String> circuitBreakerName) {
         CircuitBreakerConfig circuitBreakerConfig = CircuitBreakerConfig.custom()
                 .failureRateThreshold(failureRateThreshold)
                 .slowCallDurationThreshold(Duration.ofMillis(slowCallDurationThreshold))
@@ -49,10 +39,17 @@ public class Resilience4JConfig {
         TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
                 .timeoutDuration(Duration.ofSeconds(timeoutDuration))
                 .build();
-
+        if (circuitBreakerName.isPresent() && !circuitBreakerName.get().isBlank()) {
+            return factory -> factory.configure(builder -> builder.timeLimiterConfig(timeLimiterConfig)
+                    .circuitBreakerConfig(circuitBreakerConfig)
+                    .build(), circuitBreakerName.get());
+        }
         return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
                 .timeLimiterConfig(timeLimiterConfig)
                 .circuitBreakerConfig(circuitBreakerConfig)
                 .build());
     }
+
+    protected abstract Customizer<Resilience4JCircuitBreakerFactory> createConfigBean();
+
 }

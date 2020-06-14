@@ -1,10 +1,15 @@
 package com.example.resilience.poc.service;
 
+import com.example.resilience.poc.config.Resilience4JConfig;
 import com.example.resilience.poc.constants.CoreConstants;
 import com.example.resilience.poc.constants.FallbackConstants;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -13,31 +18,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 // Assumptions: Minimum number of calls per sliding window is less than sliding window size.
 //              All test cases are for failure rate threshold 100.
 @SpringBootTest
+@ConfigurationProperties("resilience")
+@Getter
+@Setter
 public class DemoServiceTest {
 
     @Autowired
     DemoService demoService;
 
-    @Value("${resilience.failure.rate.threshold:50}")
-    private float failureRateThreshold;
+    @Autowired
+    Resilience4JConfig resilience4JConfig;
 
-    @Value("${resilience.slow.call.duration.threshold:4000}")
-    private long slowCallDurationThreshold;
+    private float failureRateThreshold = 60;
 
-    @Value("${resilience.wait.duration.in.open.state:20000}")
-    private long waitDurationInOpenState;
+    private long slowCallDurationThreshold = 4000;
 
-    @Value("${resilience.minimum.number.of.calls:2}")
-    private int minimumNumberOfCalls;
+    private long waitDurationInOpenState = 20000;
 
-    @Value("${resilience.sliding.window.size:2}")
-    private int slidingWindowSize;
+    private int minimumNumberOfCalls = 2;
 
-    @Value("${resilience.permitted.number.of.calls.in.half.open.state:2}")
-    private int permittedNumberOfCallsInHalfOpenState;
+    private int slidingWindowSize = 2;
 
-    @Value("${resilience.time.out.duration:10}")
-    private long timeoutDuration;
+    private int permittedNumberOfCallsInHalfOpenState = 2;
+
+    private long timeoutDuration = 10;
 
     @Test
     @DirtiesContext

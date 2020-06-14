@@ -22,20 +22,13 @@ public class CircuitBreakerAspect {
     @Autowired
     private CircuitBreakerFactory circuitBreakerFactory;
 
-    private CircuitBreaker circuitBreaker;
-
-    @PostConstruct
-    public void init() {
-        circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-
-    }
-
     @SuppressWarnings("unchecked")
     @Around(value = "@annotation(com.example.resilience.poc.annotation.EnableCircuitBreaker)")
     public Object addCircuitBreaker(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         EnableCircuitBreaker annotation = method.getAnnotation(EnableCircuitBreaker.class);
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create(annotation.name());
         Method fallbackMethod = annotation.fallbackClass().getMethod("fallBack", Throwable.class);
             Optional<Object> response = (Optional<Object>) circuitBreaker.run(() -> {
                         try {
