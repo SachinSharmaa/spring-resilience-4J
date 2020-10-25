@@ -1,6 +1,7 @@
-package com.example.resilience.poc.aspect;
+package com.sachin.resilience.aspect;
 
-import com.example.resilience.poc.annotation.EnableCircuitBreaker;
+import com.sachin.resilience.annotation.EnableCircuitBreaker;
+import com.sachin.resilience.config.fallback.Fallback;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,8 +11,6 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -23,25 +22,25 @@ public class CircuitBreakerAspect {
     private CircuitBreakerFactory circuitBreakerFactory;
 
     @SuppressWarnings("unchecked")
-    @Around(value = "@annotation(com.example.resilience.poc.annotation.EnableCircuitBreaker)")
+    @Around(value = "@annotation(com.sachin.resilience.annotation.EnableCircuitBreaker)")
     public Object addCircuitBreaker(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         EnableCircuitBreaker annotation = method.getAnnotation(EnableCircuitBreaker.class);
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create(annotation.name());
-        Method fallbackMethod = annotation.fallbackClass().getMethod("fallBack", Throwable.class);
-            Optional<Object> response = (Optional<Object>) circuitBreaker.run(() -> {
+        Fallback fallbackClass = annotation.fallbackClass().getConstructor().newInstance();
+            Optional<Object> response = circuitBreaker.run(() -> {
                         try {
                             return Optional.ofNullable(joinPoint.proceed());
                         } catch (Throwable throwable) {
-                            throw new RuntimeException(throwable.getCause());
+                            throw new RuntimeException(throwable);
                         }
                     }
                     ,throwable -> {
                         try {
-                            return Optional.ofNullable(fallbackMethod.invoke(null,throwable));
-                        } catch (IllegalAccessException | InvocationTargetException e) {
-                            return Optional.ofNullable(new RuntimeException("Error while invoking fallback"));
+                            return Optional.ofNullable(fallbackClass.fallBack(throwable));
+                        } catch (Exception e) {
+                            return Optional.ofNullable(new RuntimeException("Error while invoking fallback",e));
                         }
                     });
          if(response.isPresent()) {

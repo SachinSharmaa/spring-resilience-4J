@@ -1,5 +1,6 @@
-package com.example.resilience.poc.config;
+package com.sachin.resilience.config;
 
+import com.sachin.resilience.properties.Resilience4JProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
@@ -12,32 +13,24 @@ import java.util.Optional;
 
 public abstract class Resilience4JConfig {
 
-    protected float failureRateThreshold = 60;
+   private final Resilience4JProperties properties;
 
-    protected long slowCallDurationThreshold = 4000;
-
-    protected long waitDurationInOpenState = 20000;
-
-    protected int minimumNumberOfCalls = 2;
-
-    protected int slidingWindowSize = 2;
-
-    protected int permittedNumberOfCallsInHalfOpenState = 2;
-
-    protected long timeoutDuration = 10;
+   protected Resilience4JConfig(Resilience4JProperties properties) {
+       this.properties = properties;
+   }
 
     protected Customizer<Resilience4JCircuitBreakerFactory> createCircuitBreaker(Optional<String> circuitBreakerName) {
         CircuitBreakerConfig circuitBreakerConfig = CircuitBreakerConfig.custom()
-                .failureRateThreshold(failureRateThreshold)
-                .slowCallDurationThreshold(Duration.ofMillis(slowCallDurationThreshold))
-                .waitDurationInOpenState(Duration.ofMillis(waitDurationInOpenState))
-                .minimumNumberOfCalls(minimumNumberOfCalls)
-                .slidingWindowSize(slidingWindowSize)
-                .permittedNumberOfCallsInHalfOpenState(permittedNumberOfCallsInHalfOpenState)
+                .failureRateThreshold(properties.getFailureRateThreshold())
+                .slowCallDurationThreshold(Duration.ofMillis(properties.getSlowCallDurationThreshold()))
+                .waitDurationInOpenState(Duration.ofMillis(properties.getWaitDurationInOpenState()))
+                .minimumNumberOfCalls(properties.getMinimumNumberOfCalls())
+                .slidingWindowSize(properties.getSlidingWindowSize())
+                .permittedNumberOfCallsInHalfOpenState(properties.getPermittedNumberOfCallsInHalfOpenState())
                 .build();
 
         TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofSeconds(timeoutDuration))
+                .timeoutDuration(Duration.ofSeconds(properties.getTimeoutDuration()))
                 .build();
         if (circuitBreakerName.isPresent() && !circuitBreakerName.get().isBlank()) {
             return factory -> factory.configure(builder -> builder.timeLimiterConfig(timeLimiterConfig)
