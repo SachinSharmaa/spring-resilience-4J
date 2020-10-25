@@ -17,15 +17,17 @@ Spring Cloud Hoxton.SR4 provides a starter for the Resilience4J implementation. 
 
 To use this, we have to include the jar as a dependency in our project. Please make sure the artifact is installed in your local or remote repository.
 
-1. Add the following dependency to your maven project.
+1 Add the following dependency to your maven project.
 
+```java
     <groupId>com.sachin</groupId>
     <artifactId>resilience</artifactId>
     <version>0.0.1</version>
+```
 
-2. Import the default configurations via com.sachin.resilience.config.DefaultResilienceConfig.
+2 Import the default configurations via com.sachin.resilience.config.DefaultResilienceConfig.
 
-3. Now annotate any method with com.sachin.resilience.annotation.EnableCircuitBreaker and done. The default fallbacks will be used for your methods.
+3 Now annotate any method with com.sachin.resilience.annotation.EnableCircuitBreaker and done. The default fallbacks will be used for your methods.
 
 The default configuration can be found in: com.sachin.resilience.properties.Resilience4JProperties and the default fallbacks are handeled by com.sachin.resilience.config.fallback.GenericFallback.
 
